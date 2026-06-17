@@ -26,7 +26,35 @@ Java 17, Spring Boot 3.2, MySQL 8.0, Redis, Kafka
 ### 2-1. 시스템 아키텍쳐
 <img width="2784" height="2716" alt="시스템 아키텍처 drawio" src="https://github.com/user-attachments/assets/a95139bf-58f3-4dab-853d-0a8a108f51fc" />
 
-설명
+금융 서비스의 보안성, 확장성, 고가용성을 확보하기 위해 온프레미스 데이터센터, AWS 클라우드, Microsoft Azure를 연계한 하이브리드 멀티 클라우드 아키텍처로 구성하였습니다. 핵심 계정계 시스템과 주요 데이터베이스는 온프레미스에 배치하고, 사용자 요청을 처리하는 채널계 서비스는 AWS 기반으로 구성하여 금융권 환경에 적합한 망 분리 구조를 적용하였습니다.
+
+> AWS
+
+사용자 요청은 Route 53을 통해 유입되며, WAF에서 웹 공격 및 비정상 트래픽을 1차적으로 차단합니다.
+이후 API Gateway가 각 서비스 도메인별 요청을 분기하고, VPC Link를 통해 외부에 직접 노출되지 않는 AWS Private Subnet 내부로 트래픽을 전달합니다. 
+이를 통해 실제 애플리케이션 서버와 내부 서비스는 외부 접근으로부터 보호됩니다.
+
+AWS 영역은 카드망, 증권망, 공통망 VPC로 분리하였습니다. 
+카드망과 증권망은 각각 독립적인 서비스 영역으로 구성하여 장애 전파를 최소화하고, 공통망은 인증 및 공통 기능을 담당하는 영역으로 설계하였습니다. 
+각 VPC는 DMZ, EKS, Data Layer, Public Subnet으로 세분화되어 역할별 네트워크 경계를 명확히 합니다.
+
+카드망과 증권망의 DMZ 영역에는 Nginx 기반 EC2 인스턴스와 Internal NLB를 배치하여 외부 API Gateway와 내부 WAS 계층 사이의 중계 구간을 구성하였습니다. 
+이후 트래픽은 EKS 내부 서비스로 전달되며, EKS는 업무 WAS Pod와 모니터링 Pod를 운영한다. Auto Scaling Group과 Node Group을 통해 서비스 부하 증가 및 노드 장애 상황에서도 안정적인 서비스 운영이 가능하도록 하였습니다.
+
+데이터 계층은 Redis, PostgreSQL, MySQL 등으로 분리 구성하였습니다. Redis는 Sentinel 기반으로 장애 조치가 가능하도록 설계하였으며, 서비스별 DB를 분리하여 장애 영향 범위를 줄였습니다. 온프레미스 계정계 DB와의 연계를 통해 중요 원장 데이터는 내부망에서 관리하고, 클라우드는 채널계 처리 중심으로 운영합니다.
+
+> 온프레미스
+
+온프레미스 데이터센터는 핵심 계정계 시스템과 DB 고가용성 구성을 담당합니다. 
+Nginx, 애플리케이션 VM, ProxySQL, Orchestrator, MySQL 이중화 구조를 통해 DB 장애 발생 시 Primary 전환과 접속 경로 변경이 가능하도록 구성하였다. 이를 통해 계정계 DB 장애 상황에서도 서비스 연속성을 확보할 수 있습니다.
+
+> VPN 연결
+
+AWS와 온프레미스 간 통신은 Site-to-Site VPN 및 WireGuard 기반 사설망 연결을 통해 수행됩니다. 이를 통해 클라우드 채널계 서비스와 온프레미스 계정계 시스템이 공용 인터넷에 직접 노출되지 않고 안전하게 연계됩니다.
+
+> Azure
+
+Microsoft Azure 영역은 외부 AI 서비스 연계를 위한 별도 망으로 구성하였습니다. Azure Container Apps, Managed Identity, Key Vault, Private Endpoint, Azure OpenAI 연계 구조를 통해 AI 기능을 금융 서비스 영역과 분리된 환경에서 안전하게 처리할 수 있도록 설계하였습니다.
 
 ### 2-2. 소프트웨어 아키텍처
 
