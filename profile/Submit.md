@@ -17,7 +17,12 @@
 또한 금융권 망분리 규제를 준수하는 하이브리드 클라우드 아키텍처 상에서 카드사·증권사 간 안전한 데이터 연계 구조를 구현합니다.
 
 ### 기술 스택
-Java 17, Spring Boot 3.2, MySQL 8.0, Redis, Kafka
+- **Infra**: AWS (EC2, EKS, ECR, VPC, WAF, API Gateway, Route 53, SQS, PrivateLink, Site-to-Site VPN), Azure (Container Apps, OpenAI, Key Vault, VPN Gateway), Terraform, Docker, Ansible, WireGuard, Nginx, NLB, vSphere, VM Workstation, Ubuntu
+- **Backend**: Java 17, Spring Boot, React Native, Expo, TypeScript
+- **Database**: MySQL 8.0, Neo4j (GraphDB), Amazon RDS, Redis 7.2, ProxySQL
+- **CI/CD**: GitHub Actions, Jenkins, ArgoCD, LocalXpose
+- **Monitoring**: Prometheus, Thanos, Grafana, Grafana Loki, Promtail, CloudWatch
+- **Collaboration**: GitHub, Slack, Notion, Discord, Swagger, CodeRabbit, n8n, Figma
 
 <br/>
 
